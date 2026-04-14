@@ -1,19 +1,18 @@
-// src/types/index.ts
-
 export type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
+  avatar?: string;
 }
 
 export interface Task {
-  id: string;
+  id: number;
   title: string;
   description: string;
   status: TaskStatus;
-  createdBy: string; // User ID
-  assignedTo: string; // User ID
+  createdBy: number;
+  assignedTo: number;
   createdAt: string;
 }

@@ -1,28 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
-import { User } from "./User";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 
-@Entity("tasks")
+@Entity()
 export class Task {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id: number;
 
     @Column()
-    title!: string;
+    title: string;
 
-    @Column({ type: "text" })
-    description!: string;
+    @Column()
+    description: string;
 
     @Column({ default: "Pending" })
-    status!: string;
+    status: string;
 
-    @ManyToOne(() => User, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "created_by" })
-    createdBy!: User;
+    @Column()
+    assignedTo: number;
 
-    @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true })
-    @JoinColumn({ name: "assigned_to" })
-    assignedTo!: User;
+    @Column()
+    createdBy: number;
 
-    @CreateDateColumn({ name: "created_at" })
-    createdAt!: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 }

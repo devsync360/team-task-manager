@@ -1,42 +1,65 @@
-// context/AuthContext.tsx
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';   // ✅ type-only import
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import { createContext, useState, useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { User } from '../types';
+import { api } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password?: string) => Promise<void>;
+  register: (name: string, email: string, password?: string) => Promise<void>;
   logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = async (email: string, password: string) => {
-    // Mock login – accept any non-empty credentials
-    if (email && password) {
-      setUser({
-        id: 1,
-        name: 'John Doe',
-        email,
-      });
-    } else {
-      throw new Error('Invalid credentials');
+  // Check if user is already logged in on page load
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
+    setIsLoading(false);
+  }, []);
+
+  const login = async (email: string, password?: string) => {
+    setIsLoading(true);
+    try {
+      const data = await api.login(email, password || 'postgres');
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => setUser(null);
+  const register = async (name: string, email: string, password?: string) => {
+    setIsLoading(true);
+    try {
+      const data = await api.register(name, email, password || 'postgres');
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 }
